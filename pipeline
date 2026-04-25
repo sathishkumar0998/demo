@@ -1,0 +1,25 @@
+pipeline {
+    agent any
+    environment {
+        VM_HOST = '20.219.108.236'
+        VM_USER = 'Batman'
+        VM_PASS = 'Batman@123456'
+        GIT_REPO = 'https://github.com/sathishkumar0998/demo.git'
+        GIT_CREDENTIALS_ID = '35d88b4f-fe0a-47f6-9548-8c6da707eade'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: env.GIT_REPO, credentialsId: env.GIT_CREDENTIALS_ID
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh """
+                sshpass -p '${VM_PASS}' scp -o StrictHostKeyChecking=no -r ./* ${VM_USER}@${VM_HOST}:/var/www/html/
+                sshpass -p '${VM_PASS}' ssh -o StrictHostKeyChecking=no ${VM_USER}@${VM_HOST} 'sudo systemctl restart nginx'
+                """
+            }
+        }
+    }
+}
